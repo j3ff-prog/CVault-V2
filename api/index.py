@@ -1,16 +1,14 @@
 """
 api/index.py — Flask app entry point for Vercel serverless.
-All routes live here. No in-memory session store needed —
-CV data travels through the browser's sessionStorage instead.
+CV data travels through the browser's sessionStorage — no server-side session store.
 """
 import os
 import sys
 import json
 import requests as http_requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 
-# Ensure the project root is on the path so `services` can be imported
-# whether running locally or on Vercel
+# Ensure project root is on path so `services` can be found on Vercel
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.cv_extractor import extract_text
@@ -18,22 +16,27 @@ from services.gemini_service import generate_cv, generate_cover_letter
 
 app = Flask(__name__)
 
+# ── CORS — needed so mobile browsers can reach the API ──
+@app.after_request
+def add_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
 PAYSTACK_VERIFY_URL = "https://api.paystack.co/transaction/verify/{}"
 
-# ── Paystack payment links (pre-created by Jeff) ──
 PAYSTACK_LINKS = {
     "cv":       "https://paystack.shop/pay/pcxm8e88f2",
     "cv_cover": "https://paystack.shop/pay/6fjdv8zm65",
 }
 
 
-# ─────────────────────────────────────────────────────────
-# POST /api/extract
-# Accepts a CV file upload, returns extracted plain text.
-# The frontend stores this text in sessionStorage.
-# ─────────────────────────────────────────────────────────
-@app.route("/api/extract", methods=["POST"])
+@app.route("/api/extract", methods=["POST", "OPTIONS"])
 def extract():
+    if request.method == "OPTIONS":
+        return Response(status=200)
+
     if "cv_file" not in request.files:
         return jsonify({"error": "No file uploaded."}), 400
 
@@ -41,10 +44,9 @@ def extract():
     if not f or not f.filename:
         return jsonify({"error": "Empty file upload."}), 400
 
-    # 5MB limit
     file_bytes = f.read()
     if len(file_bytes) > 5 * 1024 * 1024:
-        return jsonify({"error": "File is too large. Please upload a file under 5MB."}), 400
+        return jsonify({"error": "File too large. Please upload under 5MB."}), 400
 
     try:
         text = extract_text(file_bytes, f.filename)
@@ -54,20 +56,16 @@ def extract():
     return jsonify({"cv_text": text})
 
 
-# ─────────────────────────────────────────────────────────
-# POST /api/checkout
-# Validates inputs, returns the correct Paystack payment URL.
-# No data is stored server-side — frontend keeps cv_text + jd.
-# ─────────────────────────────────────────────────────────
-@app.route("/api/checkout", methods=["POST"])
+@app.route("/api/checkout", methods=["POST", "OPTIONS"])
 def checkout():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided."}), 400
+    if request.method == "OPTIONS":
+        return Response(status=200)
 
-    cv_text = (data.get("cv_text") or "").strip()
+    data = request.get_json(silent=True) or {}
+
+    cv_text         = (data.get("cv_text") or "").strip()
     job_description = (data.get("job_description") or "").strip()
-    package = (data.get("package") or "").strip()
+    package         = (data.get("package") or "").strip()
 
     if not cv_text:
         return jsonify({"error": "CV text is missing."}), 400
@@ -79,22 +77,17 @@ def checkout():
     return jsonify({"paystack_url": PAYSTACK_LINKS[package]})
 
 
-# ─────────────────────────────────────────────────────────
-# POST /api/generate
-# Called by the payment-success page.
-# Body: { reference, cv_text, job_description, package }
-# Verifies payment with Paystack, then runs Gemini.
-# ─────────────────────────────────────────────────────────
-@app.route("/api/generate", methods=["POST"])
+@app.route("/api/generate", methods=["POST", "OPTIONS"])
 def generate():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided."}), 400
+    if request.method == "OPTIONS":
+        return Response(status=200)
 
-    reference     = (data.get("reference") or "").strip()
-    cv_text       = (data.get("cv_text") or "").strip()
+    data = request.get_json(silent=True) or {}
+
+    reference       = (data.get("reference") or "").strip()
+    cv_text         = (data.get("cv_text") or "").strip()
     job_description = (data.get("job_description") or "").strip()
-    package       = (data.get("package") or "cv").strip()
+    package         = (data.get("package") or "cv").strip()
 
     if not reference:
         return jsonify({"error": "Missing payment reference."}), 400
@@ -103,7 +96,6 @@ def generate():
     if not job_description:
         return jsonify({"error": "Job description missing. Please go back and start again."}), 400
 
-    # ── 1. Verify payment with Paystack ──
     secret_key = os.getenv("PAYSTACK_SECRET_KEY", "")
     if not secret_key:
         return jsonify({"error": "Payment system not configured."}), 500
@@ -123,27 +115,20 @@ def generate():
     if not result.get("status") or tx_data.get("status") != "success":
         return jsonify({
             "error": f"Payment not confirmed (status: {tx_data.get('status', 'unknown')}). "
-                     f"If you were charged, contact support with reference: {reference}"
+                     f"If you were charged, contact us with reference: {reference}"
         }), 402
 
-    # ── 2. Generate with Gemini ──
     try:
         cv_data = generate_cv(cv_text, job_description)
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
 
-    response_payload = {"cv_data": cv_data}
+    payload = {"cv_data": cv_data}
 
     if package == "cv_cover":
         try:
-            cover_data = generate_cover_letter(cv_text, job_description)
-            response_payload["cover_letter_data"] = cover_data
+            payload["cover_letter_data"] = generate_cover_letter(cv_text, job_description)
         except RuntimeError as e:
-            # Don't fail the whole request — CV is already generated
-            response_payload["cover_letter_error"] = str(e)
+            payload["cover_letter_error"] = str(e)
 
-    return jsonify(response_payload)
-
-
-# Vercel needs the app object exported as `app`
-# (Vercel detects Flask apps automatically)
+    return jsonify(payload)
