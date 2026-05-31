@@ -4,6 +4,10 @@
     {
       "src": "api/index.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -13,11 +17,11 @@
     },
     {
       "src": "/cvault-payment-success.html",
-      "dest": "/static/cvault-payment-success.html"
+      "dest": "/cvault-payment-success.html"
     },
     {
       "src": "/",
-      "dest": "/static/index.html"
+      "dest": "/index.html"
     }
   ]
 }

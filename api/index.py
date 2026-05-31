@@ -4,9 +4,15 @@ All routes live here. No in-memory session store needed —
 CV data travels through the browser's sessionStorage instead.
 """
 import os
+import sys
 import json
 import requests as http_requests
 from flask import Flask, request, jsonify
+
+# Ensure the project root is on the path so `services` can be imported
+# whether running locally or on Vercel
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from services.cv_extractor import extract_text
 from services.gemini_service import generate_cv, generate_cover_letter
 
