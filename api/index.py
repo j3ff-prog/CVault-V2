@@ -131,7 +131,7 @@ def generate():
         except RuntimeError as e:
             payload["cover_letter_error"] = str(e)
 
-    return jsonify(response_payload)
+    return jsonify(payload)
 
 
 # Vercel needs the app object exported as `app`
