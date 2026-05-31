@@ -131,4 +131,8 @@ def generate():
         except RuntimeError as e:
             payload["cover_letter_error"] = str(e)
 
-    return jsonify(payload)
+    return jsonify(response_payload)
+
+
+# Vercel needs the app object exported as `app`
+# (Vercel detects Flask apps automatically)
