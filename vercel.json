@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/cvault-payment-success.html",
+      "dest": "/static/cvault-payment-success.html"
+    },
+    {
+      "src": "/",
+      "dest": "/static/index.html"
+    }
+  ]
+}

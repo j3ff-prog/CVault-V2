@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CVault — Generating Your Documents</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A1628;--navy-mid:#0F1F3D;--navy-light:#162640;
+  --gold:#C9A84C;--gold-light:#E2C274;
+  --white:#FFFFFF;--text:#E8EDF5;--muted:#8A9BBF;
+  --border:rgba(201,168,76,0.2);--success:#4CAF50;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.25rem}
+.logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);margin-bottom:2rem;text-align:center}
+.logo span{color:var(--white)}
+.card{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:2.25rem 2rem;max-width:500px;width:100%;text-align:center}
+@media(max-width:540px){.card{padding:1.75rem 1.25rem}}
+
+.s-icon{font-size:2.75rem;margin-bottom:.9rem}
+.s-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--white);margin-bottom:.6rem}
+.s-msg{color:var(--muted);font-size:.9rem;line-height:1.6}
+
+/* PROGRESS */
+.prog-wrap{background:var(--navy-light);border-radius:100px;height:5px;margin:1.75rem 0 .75rem;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width .7s ease;width:0%}
+.prog-lbl{font-size:.78rem;color:var(--muted)}
+
+/* STEP LIST */
+.slist{list-style:none;text-align:left;margin:1.5rem 0 0}
+.sitem{display:flex;align-items:center;gap:.65rem;padding:.55rem 0;font-size:.88rem;border-bottom:1px solid rgba(201,168,76,.07);color:var(--muted);transition:color .3s}
+.sitem:last-child{border-bottom:none}
+.sitem.done{color:var(--text)}
+.sitem.active{color:var(--gold)}
+.sdot{width:22px;height:22px;border-radius:50%;background:var(--navy-light);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;transition:all .3s}
+.sitem.done .sdot{background:var(--success);border-color:var(--success);color:#fff}
+.sitem.active .sdot{border-color:var(--gold)}
+.sspin{width:11px;height:11px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* DOWNLOAD */
+.dl-sec{margin-top:1.75rem}
+.btn-dl{display:flex;align-items:center;justify-content:center;gap:.55rem;width:100%;padding:.95rem;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:.65rem;text-decoration:none}
+.btn-dl:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-dl.sec{background:transparent;border:2px solid var(--border);color:var(--text)}
+.btn-dl.sec:hover{border-color:var(--gold);color:var(--gold)}
+.note{font-size:.78rem;color:var(--muted);margin-top:.9rem}
+.note a{color:var(--gold);text-decoration:none}
+.note a:hover{text-decoration:underline}
+
+/* ERROR */
+.err-box{background:rgba(239,154,154,.08);border:1px solid rgba(239,154,154,.25);border-radius:8px;padding:.9rem 1rem;color:#ef9a9a;font-size:.83rem;margin-top:1.25rem;text-align:left}
+.btn-retry{display:inline-block;margin-top:1.5rem;padding:.7rem 1.4rem;background:transparent;border:2px solid var(--gold);color:var(--gold);border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;text-decoration:none;font-size:.88rem;transition:all .2s}
+.btn-retry:hover{background:rgba(201,168,76,.1)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="logo">CV<span>ault</span></div>
+
+<div class="card">
+
+  <!-- LOADING -->
+  <div id="st-loading">
+    <div class="s-icon">⚙️</div>
+    <div class="s-title">Working on Your CV</div>
+    <div class="s-msg">Please stay on this page while we verify your payment and generate your documents.</div>
+    <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-lbl" id="progLbl">Initialising…</div>
+    <ul class="slist">
+      <li class="sitem" id="si-pay"><div class="sdot" id="sd-pay">1</div>Verifying payment</li>
+      <li class="sitem" id="si-ai"><div class="sdot" id="sd-ai">2</div>AI tailoring your CV</li>
+      <li class="sitem" id="si-cl"><div class="sdot" id="sd-cl">3</div>Generating cover letter</li>
+      <li class="sitem" id="si-doc"><div class="sdot" id="sd-doc">4</div>Preparing Word documents</li>
+    </ul>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="st-success" class="hidden">
+    <div class="s-icon">🎉</div>
+    <div class="s-title">Your Documents Are Ready!</div>
+    <div class="s-msg">Download your tailored Word document(s) below.</div>
+    <div class="dl-sec" id="dlBtns"></div>
+    <div class="note">
+      Open in Microsoft Word, Google Docs, or LibreOffice.<br/>
+      <a href="/">← Generate another CV</a>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="st-error" class="hidden">
+    <div class="s-icon">❌</div>
+    <div class="s-title">Something Went Wrong</div>
+    <div class="s-msg">If your payment went through, contact us and we'll sort it out.</div>
+    <div class="err-box" id="errDetail"></div>
+    <a href="/" class="btn-retry">← Start Again</a>
+  </div>
+
+</div>
+
+<script>
+// ─── docx.js document builders ───────────────────────────────────────
+
+const {
+  Document, Packer, Paragraph, TextRun,
+  AlignmentType, BorderStyle, LevelFormat
+} = docx;
+
+function sectionHeader(text) {
+  return new Paragraph({
+    children: [new TextRun({ text: text.toUpperCase(), bold: true, font: 'Calibri', size: 22, allCaps: true })],
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0A1628', space: 1 } },
+    spacing: { before: 260, after: 100 },
+  });
+}
+
+function buildCV(d) {
+  const ch = [];
+
+  // Name
+  ch.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: (d.name || '').toUpperCase(), bold: true, font: 'Calibri', size: 32 })],
+    spacing: { after: 80 },
+  }));
+
+  // Contact
+  if (d.contact) ch.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: d.contact, font: 'Calibri', size: 20, color: '444444' })],
+    spacing: { after: 200 },
+  }));
+
+  // Summary
+  if (d.summary) {
+    ch.push(sectionHeader('Professional Summary'));
+    ch.push(new Paragraph({ children: [new TextRun({ text: d.summary, font: 'Calibri', size: 20 })], spacing: { after: 120 } }));
+  }
+
+  // Experience
+  if (d.experience && d.experience.length) {
+    ch.push(sectionHeader('Work Experience'));
+    for (const e of d.experience) {
+      ch.push(new Paragraph({ children: [new TextRun({ text: e.title || '', bold: true, font: 'Calibri', size: 22 })], spacing: { before: 120, after: 40 } }));
+      ch.push(new Paragraph({ children: [new TextRun({ text: `${e.company || ''} · ${e.period || ''}`, italics: true, font: 'Calibri', size: 20, color: '555555' })], spacing: { after: 60 } }));
+      for (const b of (e.bullets || [])) {
+        ch.push(new Paragraph({ numbering: { reference: 'bullets', level: 0 }, children: [new TextRun({ text: b, font: 'Calibri', size: 20 })], spacing: { before: 40, after: 40 } }));
+      }
+    }
+  }
+
+  // Education
+  if (d.education && d.education.length) {
+    ch.push(sectionHeader('Education'));
+    for (const e of d.education) {
+      ch.push(new Paragraph({ children: [new TextRun({ text: e.degree || '', bold: true, font: 'Calibri', size: 22 })], spacing: { before: 120, after: 40 } }));
+      ch.push(new Paragraph({ children: [new TextRun({ text: `${e.institution || ''} · ${e.period || ''}`, italics: true, font: 'Calibri', size: 20, color: '555555' })], spacing: { after: 60 } }));
+      if (e.details) ch.push(new Paragraph({ children: [new TextRun({ text: e.details, font: 'Calibri', size: 20 })], spacing: { after: 60 } }));
+    }
+  }
+
+  // Skills
+  if (d.skills && d.skills.length) {
+    ch.push(sectionHeader('Skills'));
+    ch.push(new Paragraph({ children: [new TextRun({ text: d.skills.join(' · '), font: 'Calibri', size: 20 })], spacing: { after: 120 } }));
+  }
+
+  // Languages
+  if (d.languages && d.languages.length) {
+    ch.push(sectionHeader('Languages'));
+    ch.push(new Paragraph({ children: [new TextRun({ text: d.languages.join(' · '), font: 'Calibri', size: 20 })], spacing: { after: 120 } }));
+  }
+
+  // Referees
+  if (d.referees && d.referees.length) {
+    ch.push(sectionHeader('Referees'));
+    for (const r of d.referees) {
+      const parts = [r.name, r.title, r.company, r.contact].filter(Boolean);
+      ch.push(new Paragraph({ children: [new TextRun({ text: parts.join(' | '), font: 'Calibri', size: 20 })], spacing: { before: 80, after: 40 } }));
+    }
+  }
+
+  return new Document({
+    numbering: { config: [{ reference: 'bullets', levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 270 } } } }] }] },
+    sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } } }, children: ch }]
+  });
+}
+
+function buildCoverLetter(d) {
+  const ch = [];
+  if (d.applicant_name) ch.push(new Paragraph({ children: [new TextRun({ text: d.applicant_name, bold: true, font: 'Calibri', size: 26 })], spacing: { after: 60 } }));
+  if (d.applicant_contact) ch.push(new Paragraph({ children: [new TextRun({ text: d.applicant_contact, font: 'Calibri', size: 20, color: '444444' })], spacing: { after: 280 } }));
+  if (d.date) ch.push(new Paragraph({ children: [new TextRun({ text: d.date, font: 'Calibri', size: 20 })], spacing: { after: 280 } }));
+  if (d.re_line) ch.push(new Paragraph({ children: [new TextRun({ text: d.re_line, bold: true, font: 'Calibri', size: 22 })], spacing: { after: 240 } }));
+  for (const p of (d.paragraphs || [])) {
+    ch.push(new Paragraph({ children: [new TextRun({ text: p, font: 'Calibri', size: 22 })], spacing: { after: 240 } }));
+  }
+  ch.push(new Paragraph({ children: [new TextRun({ text: 'Regards,', font: 'Calibri', size: 22 })], spacing: { before: 200, after: 240 } }));
+  ch.push(new Paragraph({ children: [new TextRun({ text: d.closing_name || d.applicant_name || '', bold: true, font: 'Calibri', size: 22 })] }));
+
+  return new Document({
+    sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } }, children: ch }]
+  });
+}
+
+async function triggerDownload(doc, filename) {
+  const buf = await Packer.toBuffer(doc);
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────
+
+function setProgress(pct, lbl) {
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progLbl').textContent = lbl;
+}
+function setStep(id, state) {
+  const item = document.getElementById('si-' + id);
+  const dot  = document.getElementById('sd-' + id);
+  item.className = 'sitem ' + (state === 'done' ? 'done' : state === 'active' ? 'active' : '');
+  dot.innerHTML  = state === 'done' ? '✓' : state === 'active' ? '<div class="sspin"></div>' : dot.textContent;
+}
+function showState(s) {
+  ['loading','success','error'].forEach(x => document.getElementById('st-'+x).classList.toggle('hidden', x !== s));
+}
+function showError(msg) {
+  document.getElementById('errDetail').textContent = msg;
+  showState('error');
+}
+
+// ─── Main flow ────────────────────────────────────────────────────────
+
+async function main() {
+  const params  = new URLSearchParams(window.location.search);
+  const ref     = params.get('reference') || params.get('trxref') || '';
+  const cvText  = sessionStorage.getItem('cvault_cv') || '';
+  const jd      = sessionStorage.getItem('cvault_jd') || '';
+  const pkg     = sessionStorage.getItem('cvault_pkg') || 'cv';
+
+  if (!ref) {
+    showError('No payment reference in URL. Please complete payment from the main page.');
+    return;
+  }
+  if (!cvText || !jd) {
+    showError('Your CV data was not found — this can happen if you switched browsers or devices. Please go back and start again.');
+    return;
+  }
+
+  // Step 1 — verify + generate (single backend call does both)
+  setStep('pay', 'active');
+  setProgress(20, 'Verifying payment with Paystack…');
+
+  let genData;
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference: ref, cv_text: cvText, job_description: jd, package: pkg })
+    });
+    genData = await res.json();
+    if (!res.ok || genData.error) throw new Error(genData.error || 'Generation failed.');
+  } catch (err) {
+    showError(err.message);
+    return;
+  }
+
+  setStep('pay', 'done');
+  setStep('ai', 'active');
+  setProgress(55, 'AI tailoring complete — building documents…');
+  await new Promise(r => setTimeout(r, 400));
+  setStep('ai', 'done');
+
+  const hasCL = !!genData.cover_letter_data;
+  if (hasCL) {
+    setStep('cl', 'active');
+    setProgress(72, 'Cover letter ready…');
+    await new Promise(r => setTimeout(r, 300));
+    setStep('cl', 'done');
+  } else {
+    document.getElementById('si-cl').style.opacity = '.35';
+  }
+
+  setStep('doc', 'active');
+  setProgress(88, 'Preparing Word documents…');
+
+  const cvDoc = buildCV(genData.cv_data);
+  const clDoc = hasCL ? buildCoverLetter(genData.cover_letter_data) : null;
+
+  setStep('doc', 'done');
+  setProgress(100, 'Done!');
+
+  // Build download buttons
+  const safeName = (genData.cv_data.name || 'CV').replace(/\s+/g, '_');
+  const dlBtns = document.getElementById('dlBtns');
+
+  const b1 = document.createElement('button');
+  b1.className = 'btn-dl';
+  b1.innerHTML = '📄 Download Tailored CV (.docx)';
+  b1.onclick = () => triggerDownload(cvDoc, `CVault_CV_${safeName}.docx`);
+  dlBtns.appendChild(b1);
+
+  if (clDoc) {
+    const b2 = document.createElement('button');
+    b2.className = 'btn-dl sec';
+    b2.innerHTML = '📝 Download Cover Letter (.docx)';
+    b2.onclick = () => triggerDownload(clDoc, `CVault_CoverLetter_${safeName}.docx`);
+    dlBtns.appendChild(b2);
+  }
+
+  // Clear sensitive data from browser
+  sessionStorage.removeItem('cvault_cv');
+  sessionStorage.removeItem('cvault_jd');
+  sessionStorage.removeItem('cvault_pkg');
+
+  await new Promise(r => setTimeout(r, 500));
+  showState('success');
+
+  // Auto-trigger CV download
+  await triggerDownload(cvDoc, `CVault_CV_${safeName}.docx`);
+}
+
+window.addEventListener('load', main);
+</script>
+</body>
+</html>
