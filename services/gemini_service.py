@@ -7,8 +7,8 @@ import os
 import json
 from google import genai
 
-PRIMARY_MODEL  = "gemini-2.0-flash"
-FALLBACK_MODEL = "gemini-1.5-flash"
+PRIMARY_MODEL  = "gemini-2.5-flash-lite"
+FALLBACK_MODEL = "gemini-2.5-flash-lite"
 _client = None
 
 
