@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CVault — AI-Tailored CVs for Kenyan Job Seekers</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -233,6 +235,65 @@ function showErr(msg) {
 }
 function clearErr() { document.getElementById('errBox').classList.remove('show'); }
 
+// ── Read file entirely in the browser — no server needed ──
+async function readFileInBrowser(file) {
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith('.txt')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result.trim());
+      reader.onerror = () => reject(new Error('Could not read TXT file.'));
+      reader.readAsText(file);
+    });
+  }
+
+  if (name.endsWith('.docx')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+          if (!result.value.trim()) reject(new Error('DOCX file appears empty.'));
+          else resolve(result.value.trim());
+        } catch (err) {
+          reject(new Error('Could not read DOCX file.'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Could not read DOCX file.'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  if (name.endsWith('.pdf')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+          const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+          let text = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join(' ') + '\n';
+          }
+          if (!text.trim()) reject(new Error('PDF appears to be image-based with no extractable text. Please paste your CV as text instead.'));
+          else resolve(text.trim());
+        } catch (err) {
+          reject(new Error('Could not read PDF: ' + err.message));
+        }
+      };
+      reader.onerror = () => reject(new Error('Could not read PDF file.'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  throw new Error('Unsupported file type. Please upload PDF, DOCX, or TXT.');
+}
+
+
 // ── Generate ──
 async function handleGenerate() {
   clearErr();
@@ -256,14 +317,8 @@ async function handleGenerate() {
     btn.innerHTML = '<span class="spin"></span>Reading your CV…';
 
     // Extract text from file via backend
-    const fd = new FormData();
-    fd.append('cv_file', selectedFile);
-
-    try {
-      const res = await fetch('/api/extract', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Could not read your CV file.');
-      cvText = data.cv_text;
+   try {
+      cvText = await readFileInBrowser(selectedFile);
     } catch (err) {
       showErr(err.message);
       btn.disabled = false;
@@ -271,7 +326,7 @@ async function handleGenerate() {
       return;
     }
 
-    proceed(cvText, jd);
+    await proceed(cvText, jd);
   }
 
   async function proceed(cvText, jd) {
