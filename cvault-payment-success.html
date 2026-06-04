@@ -266,8 +266,13 @@ async function main() {
     showError('No payment reference in URL. Please complete payment from the main page.');
     return;
   }
-  if (!cvText || !jd) {
-    showError('Your CV data was not found — this can happen if you switched browsers or devices. Please go back and start again.');
+  const needsCV = ['cv','cv_cover','cover_only','linkedin','interview'];
+  if (needsCV.includes(pkg) && !cvText) {
+    showError('Your CV data was not found. Please go back and start again.');
+    return;
+  }
+  if (['proposal','permit'].includes(pkg) && !details) {
+    showError('Your details were not found. Please go back and start again.');
     return;
   }
 
@@ -315,8 +320,7 @@ async function main() {
   setStep('doc', 'active');
   setProgress(88, 'Preparing Word documents…');
 
-  const cvDoc = buildCV(genData.cv_data);
-  const clDoc = hasCL ? buildCoverLetter(genData.cover_letter_data) : null;
+  
 
   setStep('doc', 'done');
   setProgress(100, 'Done!');
@@ -400,12 +404,13 @@ if (genData.proposal_data) {
   sessionStorage.removeItem('cvault_cv');
   sessionStorage.removeItem('cvault_jd');
   sessionStorage.removeItem('cvault_pkg');
+  sessionStorage.removeItem('cvault_details');
+  sessionStorage.removeItem('cvault_role');
+  sessionStorage.removeItem('cvault_tool_endpoint');
 
   await new Promise(r => setTimeout(r, 500));
   showState('success');
 
-  // Auto-trigger CV download
-  await triggerDownload(cvDoc, `CVault_CV_${safeName}.docx`);
 }
 
 window.addEventListener('load', main);
