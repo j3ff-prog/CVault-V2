@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CVault — AI-Tailored CVs for Kenyan Job Seekers</title>
+<title>CVault — AI Career & Business Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -24,75 +23,64 @@ nav{padding:1.2rem 2rem;display:flex;align-items:center;justify-content:space-be
 nav small{font-size:.82rem;color:var(--muted)}
 
 /* HERO */
-.hero{text-align:center;padding:4.5rem 1.5rem 2.5rem;max-width:700px;margin:0 auto}
+.hero{text-align:center;padding:4rem 1.5rem 2rem;max-width:700px;margin:0 auto}
 .badge{display:inline-block;background:rgba(201,168,76,.1);border:1px solid var(--border);color:var(--gold);font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;margin-bottom:1.25rem}
 .hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,5vw,3rem);line-height:1.2;color:var(--white);margin-bottom:1rem}
 .hero h1 em{color:var(--gold);font-style:normal}
 .hero p{font-size:1rem;color:var(--muted);max-width:500px;margin:0 auto}
 
-/* STEPS BAR */
-.steps{display:flex;justify-content:center;align-items:center;gap:.4rem;flex-wrap:wrap;padding:1.5rem 1rem 0;max-width:560px;margin:0 auto}
-.step{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted)}
-.sn{width:20px;height:20px;background:var(--gold);color:var(--navy);border-radius:50%;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.arr{color:var(--border);font-size:.75rem}
+/* TOOLS GRID */
+.tools-section{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.tools-title{font-size:.8rem;font-weight:600;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.25rem}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
 
-/* CARD */
-.card{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:2.25rem 2rem;max-width:700px;margin:2.5rem auto;width:calc(100% - 2rem)}
-@media(max-width:600px){.card{padding:1.5rem 1.125rem}}
+/* TOOL CARD */
+.tool-card{background:var(--navy-mid);border:2px solid var(--border);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s;position:relative}
+.tool-card:hover{border-color:var(--gold);transform:translateY(-2px);background:rgba(201,168,76,.04)}
+.tool-icon{font-size:1.75rem;margin-bottom:.75rem}
+.tool-name{font-weight:700;font-size:1rem;color:var(--white);margin-bottom:.35rem}
+.tool-desc{font-size:.82rem;color:var(--muted);line-height:1.5;margin-bottom:1rem}
+.tool-price{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);font-weight:700}
+.tool-price small{font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--muted);font-weight:400;margin-left:.25rem}
+.tool-badge{position:absolute;top:.75rem;right:.75rem;background:var(--gold);color:var(--navy);font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px}
 
-.flabel{display:block;font-size:.8rem;font-weight:600;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.6rem}
-.fhint{font-size:.78rem;color:var(--muted);margin-bottom:.6rem}
-.fsec{margin-bottom:1.75rem}
+/* MODAL OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--white);margin-bottom:.35rem}
+.modal-price{color:var(--gold);font-weight:700;font-size:1rem;margin-bottom:1.5rem}
 
-/* TABS */
-.tabs{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:.9rem}
-.tab{flex:1;padding:.6rem;background:transparent;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s}
+/* FORM ELEMENTS */
+.flabel{display:block;font-size:.78rem;font-weight:600;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem}
+.fhint{font-size:.76rem;color:var(--muted);margin-bottom:.5rem}
+.fsec{margin-bottom:1.25rem}
+.tabs{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:.75rem}
+.tab{flex:1;padding:.55rem;background:transparent;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s}
 .tab.on{background:var(--gold);color:var(--navy);font-weight:600}
-.tab:not(.on):hover{background:rgba(201,168,76,.07);color:var(--text)}
-
-/* DROP ZONE */
-.drop{border:2px dashed var(--border);border-radius:10px;padding:2.25rem 1.25rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.drop{border:2px dashed var(--border);border-radius:10px;padding:1.75rem 1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
 .drop:hover,.drop.over{border-color:var(--gold);background:rgba(201,168,76,.05)}
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.drop-icon{font-size:1.75rem;margin-bottom:.4rem}
-.drop p{color:var(--muted);font-size:.88rem}
+.drop p{color:var(--muted);font-size:.84rem}
 .drop strong{color:var(--gold)}
-.file-ok{color:var(--success)!important;font-weight:600;margin-top:.4rem;font-size:.85rem}
-
-/* TEXTAREA */
-textarea{width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:10px;padding:.9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;line-height:1.6;transition:border-color .2s}
+.file-ok{color:var(--success)!important;font-weight:600;margin-top:.4rem;font-size:.82rem}
+textarea{width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:10px;padding:.85rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;resize:vertical;line-height:1.6;transition:border-color .2s}
 textarea:focus{outline:none;border-color:var(--gold)}
 textarea::placeholder{color:var(--muted)}
-
-/* PACKAGES */
-.pkgs{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
-@media(max-width:460px){.pkgs{grid-template-columns:1fr}}
-.pkg{border:2px solid var(--border);border-radius:12px;padding:1.1rem 1rem;cursor:pointer;transition:all .2s;text-align:center;position:relative;user-select:none}
-.pkg:hover{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.04)}
-.pkg.on{border-color:var(--gold);background:rgba(201,168,76,.08)}
-.pkg.on::after{content:"✓";position:absolute;top:.55rem;right:.7rem;background:var(--gold);color:var(--navy);width:20px;height:20px;border-radius:50%;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center}
-.pprice{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--gold);font-weight:700;display:block;margin-bottom:.2rem}
-.pname{font-weight:600;font-size:.92rem;color:var(--white);margin-bottom:.4rem}
-.pinc{font-size:.78rem;color:var(--muted);line-height:1.5}
-.pbadge{display:inline-block;background:var(--gold);color:var(--navy);font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.18rem .45rem;border-radius:4px;margin-bottom:.4rem}
+input[type=text]{width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:10px;padding:.85rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;transition:border-color .2s}
+input[type=text]:focus{outline:none;border-color:var(--gold)}
+input[type=text]::placeholder{color:var(--muted)}
 
 /* BUTTON */
-.btn{width:100%;padding:.95rem;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.98rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;margin-top:.25rem}
+.btn{width:100%;padding:.9rem;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.5rem}
 .btn:hover:not(:disabled){background:var(--gold-light);transform:translateY(-1px)}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-
-/* ERROR */
-.err{background:rgba(239,154,154,.1);border:1px solid rgba(239,154,154,.3);border-radius:8px;padding:.8rem 1rem;color:var(--error);font-size:.86rem;margin-top:.9rem;display:none}
+.err{background:rgba(239,154,154,.1);border:1px solid rgba(239,154,154,.3);border-radius:8px;padding:.75rem 1rem;color:var(--error);font-size:.84rem;margin-top:.75rem;display:none}
 .err.show{display:block}
-
-/* SPINNER */
-.spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(10,22,40,.3);border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:.4rem}
+.spin{display:inline-block;width:15px;height:15px;border:2.5px solid rgba(10,22,40,.3);border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:.4rem}
 @keyframes sp{to{transform:rotate(360deg)}}
-
-/* TRUST */
-.trust{text-align:center;padding:.5rem 1.5rem 3rem;color:var(--muted);font-size:.8rem}
-.trust span{margin:0 .6rem}
-.trust strong{color:var(--text)}
 
 footer{border-top:1px solid var(--border);text-align:center;padding:1.25rem;font-size:.78rem;color:var(--muted)}
 footer a{color:var(--gold);text-decoration:none}
@@ -107,92 +95,238 @@ footer a{color:var(--gold);text-decoration:none}
 </nav>
 
 <div class="hero">
-  <div class="badge">🇰🇪 Built for the Kenyan Job Market</div>
-  <h1>Your CV, <em>Tailored</em><br/>to Every Job</h1>
-  <p>Upload your CV, paste the job description — Our AI rewrites it to match, then you download a Word file.</p>
+  <div class="badge">🇰🇪 Built for Kenya</div>
+  <h1>AI Tools for Your <em>Career & Business</em></h1>
+  <p>Professional documents in seconds. Pay only for what you need — no subscriptions, no accounts.</p>
 </div>
 
-<div class="steps">
-  <div class="step"><div class="sn">1</div>Upload CV</div>
-  <div class="arr">›</div>
-  <div class="step"><div class="sn">2</div>Paste Job Description</div>
-  <div class="arr">›</div>
-  <div class="step"><div class="sn">3</div>Pay & Download</div>
-</div>
+<div class="tools-section">
+  <div class="tools-title">Choose a Tool</div>
+  <div class="tools-grid">
 
-<div class="card">
-
-  <!-- STEP 1: CV -->
-  <div class="fsec">
-    <label class="flabel">Step 1 — Your Current CV</label>
-    <div class="tabs">
-      <button class="tab on" onclick="switchTab('upload',this)">📎 Upload File</button>
-      <button class="tab" onclick="switchTab('paste',this)">📋 Paste Text</button>
+    <div class="tool-card" onclick="openTool('cv')">
+      <div class="tool-badge">Popular</div>
+      <div class="tool-icon">📄</div>
+      <div class="tool-name">CV Tailoring</div>
+      <div class="tool-desc">Rewrite your CV to match any job description. Download as Word .docx.</div>
+      <div class="tool-price">KES 49 <small>CV only</small></div>
     </div>
 
-    <div id="tab-upload">
-      <div class="drop" id="dropZone">
-        <input type="file" id="cvFile" accept=".pdf,.docx,.txt"/>
-        <div class="drop-icon">📄</div>
-        <p><strong>Click to upload</strong> or drag & drop</p>
-        <p>PDF, DOCX or TXT — max 5MB</p>
-        <p class="file-ok hidden" id="fileLabel"></p>
-      </div>
+    <div class="tool-card" onclick="openTool('cv_cover')">
+      <div class="tool-badge">Best Value</div>
+      <div class="tool-icon">📄✉️</div>
+      <div class="tool-name">CV + Cover Letter</div>
+      <div class="tool-desc">Tailored CV and a matching cover letter. Both as Word .docx files.</div>
+      <div class="tool-price">KES 99 <small>both docs</small></div>
     </div>
 
-    <div id="tab-paste" class="hidden">
-      <textarea id="cvText" rows="10" placeholder="Paste your full CV here — work experience, education, skills, all sections..."></textarea>
+    <div class="tool-card" onclick="openTool('cover_only')">
+      <div class="tool-icon">✉️</div>
+      <div class="tool-name">Cover Letter Only</div>
+      <div class="tool-desc">A compelling, human-sounding cover letter for any role. Word .docx.</div>
+      <div class="tool-price">KES 30 <small>cover letter</small></div>
     </div>
+
+    <div class="tool-card" onclick="openTool('linkedin')">
+      <div class="tool-icon">💼</div>
+      <div class="tool-name">LinkedIn Bio</div>
+      <div class="tool-desc">Optimized LinkedIn headline and About section that gets you noticed.</div>
+      <div class="tool-price">KES 49 <small>headline + bio</small></div>
+    </div>
+
+    <div class="tool-card" onclick="openTool('proposal')">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">Business Proposal</div>
+      <div class="tool-desc">Professional business proposal document ready to send to clients. Word .docx.</div>
+      <div class="tool-price">KES 149 <small>full proposal</small></div>
+    </div>
+
+    <div class="tool-card" onclick="openTool('interview')">
+      <div class="tool-icon">🎯</div>
+      <div class="tool-name">Interview Prep</div>
+      <div class="tool-desc">10 likely interview questions with strong answers tailored to your role.</div>
+      <div class="tool-price">KES 49 <small>10 Q&As</small></div>
+    </div>
+
+    <div class="tool-card" onclick="openTool('permit')">
+      <div class="tool-icon">🏛️</div>
+      <div class="tool-name">Business Permit Guide</div>
+      <div class="tool-desc">Step-by-step guide to registering and licensing your business in Kenya.</div>
+      <div class="tool-price">KES 49 <small>full guide</small></div>
+    </div>
+
   </div>
-
-  <!-- STEP 2: JD -->
-  <div class="fsec">
-    <label class="flabel">Step 2 — Job Description</label>
-    <p class="fhint">Paste the full job description — more detail = better tailoring.</p>
-    <textarea id="jd" rows="8" placeholder="Paste the job description here..."></textarea>
-  </div>
-
-  <!-- STEP 3: PACKAGE -->
-  <div class="fsec">
-    <label class="flabel">Step 3 — Choose Package</label>
-    <div class="pkgs">
-      <div class="pkg on" id="pkg-cv" onclick="pickPkg('cv')">
-        <span class="pprice">KES 49</span>
-        <div class="pname">CV Only</div>
-        <div class="pinc">Tailored CV<br/>Download as Word .docx</div>
-      </div>
-      <div class="pkg" id="pkg-cv_cover" onclick="pickPkg('cv_cover')">
-        <div class="pbadge">Best Value</div>
-        <span class="pprice">KES 99</span>
-        <div class="pname">CV + Cover Letter</div>
-        <div class="pinc">Tailored CV + Cover Letter<br/>Both as Word .docx files</div>
-      </div>
-    </div>
-  </div>
-
-  <button class="btn" id="genBtn" onclick="handleGenerate()">
-    Generate &amp; Pay with M-Pesa / Card
-  </button>
-  <div class="err" id="errBox"></div>
-
-</div>
-
-<div class="trust">
-  <span>🔒 <strong>Secure payment via Paystack</strong></span>
-  <span>⚡ <strong>M-Pesa &amp; Card</strong> accepted</span>
-  <span>📄 <strong>Word .docx</strong> download</span>
 </div>
 
 <footer>
-  &copy; 2026 CVault &middot; Built by <a href="mailto:Jeff.006760@gmail.com">Nexus Softwares</a> &middot; Nairobi, Kenya
+  &copy; 2026 CVault · Built by <a href="mailto:Jeff.006760@gmail.com">Nexus Softwares</a> · Nairobi, Kenya
 </footer>
 
-<script>
-let activeTab = 'upload';
-let selectedPkg = 'cv';
-let selectedFile = null;
+<!-- ── MODAL ── -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-price" id="modalPrice"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
-// ── Tabs ──
+<script>
+// ── Tool definitions ──
+const TOOLS = {
+  cv: {
+    title: "CV Tailoring",
+    price: "KES 49",
+    paystackUrl: "https://paystack.shop/pay/pcxm8e88f2",
+    apiEndpoint: "/api/generate",
+    sessionKeys: ["cvault_cv","cvault_jd","cvault_pkg"],
+    pkg: "cv"
+  },
+  cv_cover: {
+    title: "CV + Cover Letter",
+    price: "KES 99",
+    paystackUrl: "https://paystack.shop/pay/6fjdv8zm65",
+    apiEndpoint: "/api/generate",
+    sessionKeys: ["cvault_cv","cvault_jd","cvault_pkg"],
+    pkg: "cv_cover"
+  },
+  cover_only: {
+    title: "Cover Letter Only",
+    price: "KES 30",
+    paystackUrl: "https://paystack.shop/pay/9mlocoswcw",
+    apiEndpoint: "/api/cover-letter",
+    sessionKeys: ["cvault_cv","cvault_jd","cvault_pkg"],
+    pkg: "cover_only"
+  },
+  linkedin: {
+    title: "LinkedIn Bio",
+    price: "KES 49",
+    paystackUrl: "https://paystack.shop/pay/jeugauganh",
+    apiEndpoint: "/api/linkedin",
+    sessionKeys: ["cvault_cv","cvault_role","cvault_pkg"],
+    pkg: "linkedin"
+  },
+  proposal: {
+    title: "Business Proposal",
+    price: "KES 149",
+    paystackUrl: "https://paystack.shop/pay/6reio0g5cy",
+    apiEndpoint: "/api/proposal",
+    sessionKeys: ["cvault_details","cvault_pkg"],
+    pkg: "proposal"
+  },
+  interview: {
+    title: "Interview Prep",
+    price: "KES 49",
+    paystackUrl: "https://paystack.shop/pay/czqub0466z",
+    apiEndpoint: "/api/interview",
+    sessionKeys: ["cvault_cv","cvault_jd","cvault_pkg"],
+    pkg: "interview"
+  },
+  permit: {
+    title: "Business Permit Guide",
+    price: "KES 49",
+    paystackUrl: "https://paystack.shop/pay/u0dprrh8lr",
+    apiEndpoint: "/api/permit",
+    sessionKeys: ["cvault_details","cvault_pkg"],
+    pkg: "permit"
+  }
+};
+
+let currentTool = null;
+let selectedFile = null;
+let activeTab = 'upload';
+
+// ── Modal open/close ──
+function openTool(toolKey) {
+  currentTool = toolKey;
+  selectedFile = null;
+  activeTab = 'upload';
+  const tool = TOOLS[toolKey];
+  document.getElementById('modalTitle').textContent = tool.title;
+  document.getElementById('modalPrice').textContent = tool.price + ' — Pay via M-Pesa or Card';
+  document.getElementById('modalBody').innerHTML = getFormHTML(toolKey);
+  document.getElementById('overlay').classList.add('show');
+  attachFileListeners();
+}
+
+function closeModalBtn() {
+  document.getElementById('overlay').classList.remove('show');
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('overlay')) closeModalBtn();
+}
+
+// ── Form HTML per tool ──
+function getFormHTML(toolKey) {
+  const cvUploadSection = `
+    <div class="fsec">
+      <label class="flabel">Your Current CV</label>
+      <div class="tabs">
+        <button class="tab on" onclick="switchTab('upload',this)">📎 Upload File</button>
+        <button class="tab" onclick="switchTab('paste',this)">📋 Paste Text</button>
+      </div>
+      <div id="tab-upload">
+        <div class="drop" id="dropZone">
+          <input type="file" id="cvFile" accept=".pdf,.docx,.txt"/>
+          <div style="font-size:1.5rem;margin-bottom:.4rem">📄</div>
+          <p><strong>Click to upload</strong> or drag & drop</p>
+          <p>PDF, DOCX or TXT — max 5MB</p>
+          <p class="file-ok hidden" id="fileLabel"></p>
+        </div>
+      </div>
+      <div id="tab-paste" class="hidden">
+        <textarea id="cvText" rows="8" placeholder="Paste your full CV here..."></textarea>
+      </div>
+    </div>`;
+
+  const jdSection = `
+    <div class="fsec">
+      <label class="flabel">Job Description</label>
+      <p class="fhint">Paste the full job description.</p>
+      <textarea id="jd" rows="6" placeholder="Paste the job description here..."></textarea>
+    </div>`;
+
+  if (toolKey === 'cv' || toolKey === 'cv_cover') {
+    return cvUploadSection + jdSection + submitBtn();
+  }
+  if (toolKey === 'cover_only') {
+    return cvUploadSection + jdSection + submitBtn();
+  }
+  if (toolKey === 'linkedin') {
+    return cvUploadSection + `
+    <div class="fsec">
+      <label class="flabel">Target Role / Industry</label>
+      <input type="text" id="targetRole" placeholder="e.g. Software Engineer, Marketing Manager, Accountant"/>
+    </div>` + submitBtn();
+  }
+  if (toolKey === 'proposal') {
+    return `
+    <div class="fsec">
+      <label class="flabel">Tell us about the proposal</label>
+      <p class="fhint">Include: your business name, client name, what you're proposing, pricing if known, and any key details.</p>
+      <textarea id="details" rows="10" placeholder="e.g. My business is XYZ Agency. I am proposing social media management services to ABC Company at KES 30,000/month. The scope includes 3 posts per week on Instagram and Facebook, monthly reports..."></textarea>
+    </div>` + submitBtn();
+  }
+  if (toolKey === 'interview') {
+    return cvUploadSection + jdSection + submitBtn();
+  }
+  if (toolKey === 'permit') {
+    return `
+    <div class="fsec">
+      <label class="flabel">Describe your business</label>
+      <p class="fhint">Include: type of business, your county/location, and any other relevant details.</p>
+      <textarea id="details" rows="8" placeholder="e.g. I want to open a small restaurant in Ruiru, Kiambu County. It will seat about 30 people and serve local food. I am starting from scratch and have not registered anything yet."></textarea>
+    </div>` + submitBtn();
+  }
+}
+
+function submitBtn() {
+  return `<button class="btn" id="submitBtn" onclick="handleSubmit()">Generate &amp; Pay with M-Pesa / Card</button>
+  <div class="err" id="errBox"></div>`;
+}
+
+// ── Tab switching ──
 function switchTab(tab, btn) {
   activeTab = tab;
   document.getElementById('tab-upload').classList.toggle('hidden', tab !== 'upload');
@@ -201,73 +335,56 @@ function switchTab(tab, btn) {
   btn.classList.add('on');
 }
 
-// ── File drop ──
-const cvFileEl = document.getElementById('cvFile');
-const dropZone = document.getElementById('dropZone');
-const fileLabel = document.getElementById('fileLabel');
+// ── File listeners ──
+function attachFileListeners() {
+  const fileEl = document.getElementById('cvFile');
+  const dropZone = document.getElementById('dropZone');
+  const fileLabel = document.getElementById('fileLabel');
+  if (!fileEl) return;
 
-function setFile(file) {
-  selectedFile = file;
-  fileLabel.textContent = '✓ ' + file.name;
-  fileLabel.classList.remove('hidden');
-}
-cvFileEl.addEventListener('change', () => { if (cvFileEl.files[0]) setFile(cvFileEl.files[0]); });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('over');
-  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
-});
-
-// ── Package ──
-function pickPkg(pkg) {
-  selectedPkg = pkg;
-  document.querySelectorAll('.pkg').forEach(el => el.classList.remove('on'));
-  document.getElementById('pkg-' + pkg).classList.add('on');
+  function setFile(file) {
+    selectedFile = file;
+    fileLabel.textContent = '✓ ' + file.name;
+    fileLabel.classList.remove('hidden');
+  }
+  fileEl.addEventListener('change', () => { if (fileEl.files[0]) setFile(fileEl.files[0]); });
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('over');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
 }
 
-// ── Error ──
-function showErr(msg) {
-  const b = document.getElementById('errBox');
-  b.textContent = msg; b.classList.add('show');
-  b.scrollIntoView({ behavior:'smooth', block:'nearest' });
-}
-function clearErr() { document.getElementById('errBox').classList.remove('show'); }
-
-// ── Read file entirely in the browser — no server needed ──
+// ── Read file in browser ──
 async function readFileInBrowser(file) {
   const name = file.name.toLowerCase();
-
   if (name.endsWith('.txt')) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result.trim());
-      reader.onerror = () => reject(new Error('Could not read TXT file.'));
-      reader.readAsText(file);
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result.trim());
+      r.onerror = () => reject(new Error('Could not read TXT file.'));
+      r.readAsText(file);
     });
   }
-
   if (name.endsWith('.docx')) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async e => {
+      const r = new FileReader();
+      r.onload = async e => {
         try {
           const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
           if (!result.value.trim()) reject(new Error('DOCX file appears empty.'));
           else resolve(result.value.trim());
-        } catch (err) {
-          reject(new Error('Could not read DOCX file.'));
-        }
+        } catch { reject(new Error('Could not read DOCX file.')); }
       };
-      reader.onerror = () => reject(new Error('Could not read DOCX file.'));
-      reader.readAsArrayBuffer(file);
+      r.onerror = () => reject(new Error('Could not read DOCX file.'));
+      r.readAsArrayBuffer(file);
     });
   }
-
   if (name.endsWith('.pdf')) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async e => {
+      const r = new FileReader();
+      r.onload = async e => {
         try {
           const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
@@ -278,83 +395,89 @@ async function readFileInBrowser(file) {
             const content = await page.getTextContent();
             text += content.items.map(item => item.str).join(' ') + '\n';
           }
-          if (!text.trim()) reject(new Error('PDF appears to be image-based with no extractable text. Please paste your CV as text instead.'));
+          if (!text.trim()) reject(new Error('PDF is image-based. Please paste your CV as text instead.'));
           else resolve(text.trim());
-        } catch (err) {
-          reject(new Error('Could not read PDF: ' + err.message));
-        }
+        } catch(err) { reject(new Error('Could not read PDF: ' + err.message)); }
       };
-      reader.onerror = () => reject(new Error('Could not read PDF file.'));
-      reader.readAsArrayBuffer(file);
+      r.onerror = () => reject(new Error('Could not read PDF.'));
+      r.readAsArrayBuffer(file);
     });
   }
-
   throw new Error('Unsupported file type. Please upload PDF, DOCX, or TXT.');
 }
 
+// ── Error helpers ──
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = msg; b.classList.add('show');
+}
+function clearErr() {
+  const b = document.getElementById('errBox');
+  if (b) b.classList.remove('show');
+}
 
-// ── Generate ──
-async function handleGenerate() {
+// ── Submit handler ──
+async function handleSubmit() {
   clearErr();
-  const btn = document.getElementById('genBtn');
-  const jd = document.getElementById('jd').value.trim();
+  const tool = TOOLS[currentTool];
+  const btn = document.getElementById('submitBtn');
 
-  if (!jd) { showErr('Please paste the job description.'); return; }
+  // ── Tools that need CV ──
+  const needsCV = ['cv','cv_cover','cover_only','linkedin','interview'];
+  const needsJD = ['cv','cv_cover','cover_only','interview'];
+  const needsDetails = ['proposal','permit'];
 
   let cvText = '';
+  let jd = '';
+  let details = '';
+  let targetRole = '';
 
-  if (activeTab === 'paste') {
-    cvText = document.getElementById('cvText').value.trim();
-    if (!cvText) { showErr('Please paste your CV text.'); return; }
-    proceed(cvText, jd);
-
-  } else {
-    if (!selectedFile) { showErr('Please upload your CV file, or switch to "Paste Text".'); return; }
-    if (selectedFile.size > 5 * 1024 * 1024) { showErr('File too large — please upload under 5MB.'); return; }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span>Reading your CV…';
-
-    // Extract text from file via backend
-   try {
-      cvText = await readFileInBrowser(selectedFile);
-    } catch (err) {
-      showErr(err.message);
-      btn.disabled = false;
-      btn.innerHTML = 'Generate &amp; Pay with M-Pesa / Card';
-      return;
-    }
-
-    await proceed(cvText, jd);
-  }
-
-  async function proceed(cvText, jd) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span>Saving details…';
-
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cv_text: cvText, job_description: jd, package: selectedPkg })
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Server error, please try again.');
-
-      // Save everything in browser sessionStorage — travels with the user through Paystack
-      sessionStorage.setItem('cvault_cv', cvText);
-      sessionStorage.setItem('cvault_jd', jd);
-      sessionStorage.setItem('cvault_pkg', selectedPkg);
-
-      btn.innerHTML = '<span class="spin"></span>Redirecting to payment…';
-      window.location.href = data.paystack_url;
-
-    } catch (err) {
-      showErr(err.message);
-      btn.disabled = false;
-      btn.innerHTML = 'Generate &amp; Pay with M-Pesa / Card';
+  if (needsCV.includes(currentTool)) {
+    if (activeTab === 'paste') {
+      cvText = (document.getElementById('cvText')?.value || '').trim();
+      if (!cvText) { showErr('Please paste your CV text.'); return; }
+    } else {
+      if (!selectedFile) { showErr('Please upload your CV file or switch to Paste Text.'); return; }
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"></span>Reading your CV…';
+      try {
+        cvText = await readFileInBrowser(selectedFile);
+      } catch(err) {
+        showErr(err.message);
+        btn.disabled = false;
+        btn.innerHTML = 'Generate &amp; Pay with M-Pesa / Card';
+        return;
+      }
     }
   }
+
+  if (needsJD.includes(currentTool)) {
+    jd = (document.getElementById('jd')?.value || '').trim();
+    if (!jd) { showErr('Please paste the job description.'); return; }
+  }
+
+  if (currentTool === 'linkedin') {
+    targetRole = (document.getElementById('targetRole')?.value || '').trim();
+    if (!targetRole) { showErr('Please enter your target role.'); return; }
+  }
+
+  if (needsDetails.includes(currentTool)) {
+    details = (document.getElementById('details')?.value || '').trim();
+    if (!details) { showErr('Please fill in the details.'); return; }
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Redirecting to payment…';
+
+  // Save to sessionStorage so success page can use it
+  sessionStorage.setItem('cvault_pkg', currentTool);
+  sessionStorage.setItem('cvault_tool_endpoint', tool.apiEndpoint);
+  if (cvText) sessionStorage.setItem('cvault_cv', cvText);
+  if (jd) sessionStorage.setItem('cvault_jd', jd);
+  if (details) sessionStorage.setItem('cvault_details', details);
+  if (targetRole) sessionStorage.setItem('cvault_role', targetRole);
+
+  window.location.href = tool.paystackUrl;
 }
 </script>
 </body>
